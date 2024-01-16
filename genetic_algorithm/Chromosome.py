@@ -11,6 +11,7 @@ class Chromosome:
         self.index = index
         self.fitness = None
         self.values = np.arange(1, N+1)
+        self.block_size = 3
         
         if general_matrix is not None:
             
@@ -74,8 +75,8 @@ class Chromosome:
         print("General matrix:")
         print(self.general_matrix)
         
-#         print("Binary matrix:")
-#         print(self.binary_matrix)
+        print("Binary matrix:")
+        print(self.binary_matrix)
         
         print("Fitness:", self.fitness)
         print("Index:", self.index)
@@ -101,14 +102,19 @@ class Chromosome:
         
         # Obtain a set C, which will contain the illegal columns
         
-        set_C = self.obtain_illegal_columns()
+        set_C = set(self.obtain_illegal_columns())
         
-        for index_col in set_C:
-            
-#             current_column = self.general_matrix[:, index_col]
-            index_other_col = random.choice(set_C)
-#             other_column = self.general_matrix[:, index_other_col]
-            self.swap_columns(index_col, index_other_col)
+        if len(set_C) > 1:
+        
+            for index_col in set_C:
+
+                # Exclude the current index_block from the options
+                options = set_C - {index_col}
+
+                # Choose a random index_other_block from the remaining options
+                index_other_col = random.choice(list(options))
+
+                self.swap_columns(index_col, index_other_col)
         
         
     def obtain_illegal_columns(self):
@@ -211,12 +217,21 @@ class Chromosome:
 
         # Obtain a set S, which will contain the illegal columns
 
-        set_S = self.obtain_illegal_sublocks()
+        set_S = set(self.obtain_illegal_sublocks())
+        
+        # Check if there are at least two illegal sub_blocks
+        
+        if len(set_S) > 1:
 
-        for index_block in set_S:
+            for index_block in set_S:
 
-            index_other_block = random.choice(set_S)
-            self.swap_sub_Block(index_block, index_other_block)
+                # Exclude the current index_block from the options
+                options = set_S - {index_block}
+
+                # Choose a random index_other_block from the remaining options
+                index_other_block = random.choice(list(options))
+
+                self.swap_sub_Block(index_block, index_other_block)
 
 
     def obtain_illegal_sublocks(self):
@@ -231,7 +246,7 @@ class Chromosome:
 
         rows = columns = self.elements
 
-        block_size = int(np.sqrt(self.elements))
+        block_size = self.block_size
 
         for i in range(0, rows, block_size):
 
@@ -251,6 +266,95 @@ class Chromosome:
 
         return set_S
 
+
+
+#     def swap_sub_Block(self, indexes1, indexes2):
+#         """
+#         Try to swap row elements on each illegal sub-block
+#         """
+
+#         # Obtain the indexes of the two sub_blocks
+#         rows1, cols1 = indexes1
+#         rows2, cols2 = indexes2
+
+#         blocks_size = int(np.sqrt(self.elements))
+
+#         # Obtain the sub_blocks
+#         sub_block1 = self.general_matrix[rows1:rows1 + blocks_size, cols1:cols1 + blocks_size].copy()
+#         sub_block2 = self.general_matrix[rows2:rows2 + blocks_size, cols2:cols2 + blocks_size].copy()
+        
+#         print("Original sub_blocks")
+#         print(sub_block1)
+#         print(sub_block2)
+
+#         # Obtain the repeated values in each sub_block
+#         values_sub_block1 = np.where(np.bincount(sub_block1.flatten()) > 1)[0]
+#         values_sub_block2 = np.where(np.bincount(sub_block2.flatten()) > 1)[0]
+
+#         # Obtain the indexes of repeated values in each sub-block
+#         indexes_sub_block1 = np.where(np.isin(sub_block1, values_sub_block1))
+#         indexes_sub_block2 = np.where(np.isin(sub_block2, values_sub_block2))
+        
+#         # Obtain the rows where there are repeated values in both sub-blocks
+        
+#         common_rows = np.intersect1d(indexes_sub_block1[0], indexes_sub_block2[0])
+        
+#         for i in common_rows:
+            
+#             # Find the columns in each common_row
+            
+#             columns1 = indexes_sub_block1[1][indexes_sub_block1[0] == i]
+#             columns2 = indexes_sub_block2[1][indexes_sub_block2[0] == i]
+            
+#             print("Columns1", columns1)
+#             print("Columns2", columns2)
+            
+            
+#             # Find non-overlapping values in each sub_block
+#             values1 = np.setdiff1d(sub_block1[i, columns1], sub_block2)
+#             values2 = np.setdiff1d(sub_block2[i, columns2], sub_block1)
+            
+#             print("Values1", values1)
+#             print("Values2", values2)
+
+#             # Obtain the original coordinates for each value
+#             originals1 = [(rows1 + i, cols1 + col) for col in columns1]
+#             originals2 = [(rows2 + i, cols2 + col) for col in columns2]
+            
+#             print("Originals1", originals1)
+#             print("Originals2", originals2)
+            
+# #             print("Originals1", originals1_change_idx)
+# #             print("Originals2", originals2_change_idx)
+            
+#             if len(values1) > 0 and len(values2) > 0:
+            
+#                 # Iterate over all combinations of values in values1 and values2
+#                 for j, value1 in enumerate(values1):
+#                     for k, value2 in enumerate(values2):
+
+#                         # Check conditions for swapping each combination
+#                         if (
+#                             not np.any(self.binary_matrix[originals1[j][0], originals1[j][1]] == 1) and
+#                             not np.any(self.binary_matrix[originals2[k][0], originals2[k][1]] == 1) and
+#                             value1 not in sub_block2 and
+#                             value2 not in sub_block1
+#                         ):
+#                             # Perform the swap
+#                             sub_block1[i, columns1[j]] = value2
+#                             sub_block2[i, columns2[k]] = value1
+#                             print("Putos")
+                            
+#             print("Final Sub_blocks")
+#             print(sub_block1)
+#             print(sub_block2)
+            
+
+        
+        
+#         # Update the general_matrix with the modified sub_blocks
+#         self.general_matrix[rows1:rows1 + blocks_size, cols1:cols1 + blocks_size] = sub_block1
+#         self.general_matrix[rows2:rows2 + blocks_size, cols2:cols2 + blocks_size] = sub_block2
 
 
     def swap_sub_Block(self, indexes1, indexes2):

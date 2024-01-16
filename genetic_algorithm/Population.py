@@ -1,7 +1,8 @@
 import numpy as np
 import random
+
 from .Chromosome import *
- 
+
 class Population:
     
     def __init__(self, popsize, n, given_matrix):
@@ -283,8 +284,8 @@ class Population:
 
 #                 new_population.extend([child1, child2])
             
-            # Combine new children with the existing population
-            combined_population = self.population + new_population
+        # Combine new children with the existing population
+        combined_population = self.population + new_population
             
             
         # Update the current population
@@ -388,7 +389,7 @@ class Population:
             
             # Replace the worst individual
             
-#             print("Replace the worst individual", index_random)
+            print("Replace the worst individual", index_random)
             
             self.population[-1] = elite_population[index_random]
             
@@ -396,5 +397,5 @@ class Population:
             
             # Initialize the worst individual
             
-#             print("Initialize the worst individual")
+            print("Initialize the worst individual")
             self.population[-1].randomInitialize(self.given_matrix, function, index = worst_individual.index)
